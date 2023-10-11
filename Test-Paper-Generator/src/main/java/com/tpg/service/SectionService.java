@@ -1,95 +1,139 @@
 package com.tpg.service;
 
-import java.util.List;
-import java.util.Random;
-
-import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.tpg.entity.Questions;
+import com.tpg.entity.Question;
 import com.tpg.entity.Section;
+import com.tpg.entity.Subject;
+import com.tpg.repository.QuestionsRepository;
 import com.tpg.repository.SectionRepository;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class SectionService {
 
-    private final SectionRepository sectionRepository;
-    private final QuestionsService questionsService;
+    @Autowired
+    private SectionRepository sectionRepository;
 
     @Autowired
-    public SectionService(SectionRepository sectionRepository, QuestionsService questionsService) {
+    private QuestionsRepository questionsRepository;
+
+    public SectionService(SectionRepository sectionRepository, QuestionsRepository questionsRepository) {
         this.sectionRepository = sectionRepository;
-        this.questionsService = questionsService;
+        this.questionsRepository = questionsRepository;
     }
 
-    // Retrieve all sections
+//    // Create a new section with random questions
+//    public Section generateRandomSection(int subjectId, int numberOfQuestions) {
+//        // Get all questions for the given subject
+//        List<Question> allQuestions = questionsRepository.findBySubjectSubjectId(subjectId);
+//
+//        // Check if there are enough questions available for the given subject
+//        if (allQuestions.size() < numberOfQuestions) {
+//            throw new IllegalArgumentException("Not enough questions available for the subject.");
+//        }
+//
+//        // Shuffle the questions and select the first 'numberOfQuestions' questions
+//        List<Question> randomQuestions = getRandomQuestions(allQuestions, numberOfQuestions);
+//
+//        // Create a new Section object
+//        Section section = new Section();
+//        Subject subject = new Subject();
+//        subject.setSubjectId(subjectId);
+//        section.setSubject(subject);
+//        section.setNumberOfQuestions(numberOfQuestions);
+//        section.setQuestions(randomQuestions);
+//
+//        // Save the section to the database
+//        sectionRepository.save(section);
+//
+//        return section;
+//    }
+
+    public Section generateRandomSection(int subjectId, int numberOfQuestions) {
+        // Get all questions for the given subject
+        List<Question> allQuestions = questionsRepository.findBySubjectSubjectId(subjectId);
+
+        // Check if there are enough questions available for the given subject
+        if (allQuestions.size() < numberOfQuestions) {
+            throw new IllegalArgumentException("Not enough questions available for the subject.");
+        }
+
+        // Shuffle the questions and select the first 'numberOfQuestions' questions
+        List<Question> randomQuestions = getRandomQuestions(allQuestions, numberOfQuestions);
+
+        // Create a new Section object
+        Section section = new Section();
+        Subject subject = new Subject();
+        subject.setSubjectId(subjectId);
+        section.setSubject(subject);
+        section.setNumberOfQuestions(numberOfQuestions);
+        section.setQuestions(randomQuestions);
+//        section.setGeneratedQuestions(randomQuestions); // Set the generated questions
+//        // Save the generated questions to the database
+//        sectionRepository.save(randomQuestions);
+//        
+//        // Save the section to the database
+//        sectionRepository.save(section);
+
+        return section;
+    }
+    
+    public Question SaveGeneratedQuestions(Question randomQuestions) {
+		return ;
+    	
+    }
+
+    // Get all sections
     public List<Section> getAllSections() {
         return sectionRepository.findAll();
     }
     
+    public Section getSectionById(int section_id) {
+        return sectionRepository.findSectionWithQuestions(section_id);
+    }
+    
+
+//    // Get a section by ID
+//    public Section getSectionById(int section_id) {
+//        return sectionRepository.findById(section_id).orElse(null);
+//    }
+
     // Create a new section
-    @Transactional
     public Section createSection(Section section) {
-        // Validate the subject
-        if (section.getSubject() == null) {
-         throw new IllegalArgumentException("Section must be associated with a subject.");
-        }        
         return sectionRepository.save(section);
     }
 
-    // Update an existing section
-    @Transactional
+    // Update a section
     public Section updateSection(int section_id, Section updatedSection) {
-    	if (updatedSection.getSubject() == null) {
-            throw new IllegalArgumentException("Section must be associated with a subject.");
-           }         
-    	return sectionRepository.save(updatedSection);
+        updatedSection.setSection_id(section_id);
+        return sectionRepository.save(updatedSection);
     }
 
     // Delete a section by ID
-    @Transactional
-    public void deleteSectionById(int section_id) {
-        // You can add validation or other business logic here
+    public void deleteSection(int section_id) {
         sectionRepository.deleteById(section_id);
     }
 
-    // Find a section by ID
-    public Section findSectionById(int section_id) {
-        return sectionRepository.findById(section_id)
-                .orElseThrow(() -> new EntityNotFoundException("Section with ID " + section_id + " not found"));
-    }
-
-    @Transactional
-    public List<Questions> getRandomQuestionsForSection(Section section, int numberOfQuestions) {
-    	int subject_id = section.getSubject().getSubject_id();
-        int difficultyLevel = (section.getQuestions() != null) ? section.getQuestions().getLevel() : 0;
-
-        // Retrieve all questions that match the subject and difficulty level
-        List<Questions> matchingQuestions = questionsService.getQuestionsBySubjectAndLevel(subject_id, difficultyLevel);
-
-        // Check if there are enough questions to meet the required number
-        if (matchingQuestions.size() < numberOfQuestions) {
-            throw new IllegalArgumentException("Not enough questions available for the specified subject and difficulty level.");
-        }
-
-        // Shuffle the list of matching questions
-        shuffleList(matchingQuestions);
-
-        // Select the first 'numberOfQuestions' questions
-        return matchingQuestions.subList(0, numberOfQuestions);
-    }
-
-    // Helper method to shuffle a list
-    private <T> void shuffleList(List<T> list) {
+    private List<Question> getRandomQuestions(List<Question> questions, int numberOfQuestions) {
+        List<Question> randomQuestions = new ArrayList<>();
         Random random = new Random();
-        for (int i = list.size() - 1; i > 0; i--) {
-            int j = random.nextInt(i + 1);
-            T temp = list.get(i);
-            list.set(i, list.get(j));
-            list.set(j, temp);
+
+        while (randomQuestions.size() < numberOfQuestions) {
+            int randomIndex = random.nextInt(questions.size());
+            Question randomQuestion = questions.get(randomIndex);
+
+            // Check if the question is not already in the list
+            if (!randomQuestions.contains(randomQuestion)) {
+                randomQuestions.add(randomQuestion);
+            }
         }
+
+        return randomQuestions;
     }
+
 }

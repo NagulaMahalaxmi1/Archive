@@ -1,5 +1,6 @@
 package com.tpg.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.tpg.entity.Questions;
+import com.tpg.entity.Question;
 import com.tpg.entity.Subject;
 import com.tpg.repository.QuestionsRepository;
 
@@ -21,47 +22,62 @@ public class QuestionsService {
 	@Autowired
     private SubjectService subjectService; 
 	
-	@Autowired
-    public QuestionsService(QuestionsRepository questionsRepository) {
-        this.questionsRepository = questionsRepository;
-    }
+//	@Autowired
+//    public QuestionsService(QuestionsRepository questionsRepository) {
+//        this.questionsRepository = questionsRepository;
+//    }
 
-    public List<Questions> getQuestionsBySubjectAndLevel(int subject_id, int level) {
-        // Use the custom query method to fetch questions by subject and level
-        return questionsRepository.findBySubjectAndLevel(subject_id, level);
-    }
-
-    public Iterable<Questions> getAllQuestions() {
+    public Iterable<Question> getAllQuestions() {
         return questionsRepository.findAll();
     }
     
-    public Questions findById(int q_id) {
+    public QuestionsService(QuestionsRepository questionsRepository, SubjectService subjectService) {
+		super();
+		this.questionsRepository = questionsRepository;
+		this.subjectService = subjectService;
+	}
+
+	public Question findById(int q_id) {
         return questionsRepository.findById(q_id).orElse(null);
     }
     
-    public Questions createQuestions(@RequestBody Questions questions) {
-    	int subject_id = questions.getSubject().getSubject_id(); 
-        Subject subject = subjectService.findById(subject_id); 
+    public Question createQuestions(@RequestBody Question questions) {
+    	int subjectId = questions.getSubject().getSubjectId(); 
+        Subject subject = subjectService.findById(subjectId); 
         questions.setSubject(subject);
         return questionsRepository.save(questions);
     }
     
-    public Questions updateQuestions(@PathVariable int q_id, @RequestBody Questions questions) {
+    public List<Question> createMultipleQuestions(List<Question> questions) {
+        List<Question> savedQuestions = new ArrayList<>();
+        
+        for (Question question : questions) {
+            int subjectId = question.getSubject().getSubjectId();
+            Subject subject = subjectService.findById(subjectId);
+            question.setSubject(subject);
+            savedQuestions.add(questionsRepository.save(question));
+        }
+        
+        return savedQuestions;
+    }
+
+    
+    public Question updateQuestions(@PathVariable int q_id, @RequestBody Question questions) {
         questions.setQ_id(q_id);
-        int subject_id = questions.getSubject().getSubject_id(); 
-        Subject subject = subjectService.findById(subject_id); 
+        int subjectId = questions.getSubject().getSubjectId(); 
+        Subject subject = subjectService.findById(subjectId); 
         questions.setSubject(subject);
         return questionsRepository.save(questions);
     }
     
     public void deleteQuestions(@PathVariable int q_id) {
-		Optional<Questions> questions = questionsRepository.findById(q_id);
+		Optional<Question> questions = questionsRepository.findById(q_id);
         if (questions.isPresent()) { 
         	questionsRepository.deleteById(q_id);
         }
     }
 
-    public List<Questions> findAll() {
+    public List<Question> findAll() {
         return questionsRepository.findAll();
     }
 }

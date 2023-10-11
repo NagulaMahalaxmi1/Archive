@@ -11,37 +11,40 @@ import javax.persistence.Table;
 public class Subject {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int subject_id;
-    private String Subject_name;
-    
-	public int getSubject_id() {
-		return subject_id;
+    private int subjectId;
+    private String subject_name;
+
+	public int getSubjectId() {
+		return subjectId;
 	}
-	public void setSubject_id(int subject_id) {
-		this.subject_id = subject_id;
+
+	public void setSubjectId(int subjectId) {
+		this.subjectId = subjectId;
 	}
+
 	public String getSubject_name() {
-		return Subject_name;
+		return subject_name;
 	}
+
 	public void setSubject_name(String subject_name) {
-		Subject_name = subject_name;
+		this.subject_name = subject_name;
 	}
-	
-	public Subject(int subject_id, String subject_name) {
+
+	public Subject(int subjectId, String subject_name) {
 		super();
-		this.subject_id = subject_id;
-		Subject_name = subject_name;
+		this.subjectId = subjectId;
+		this.subject_name = subject_name;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "Subject [subjectId=" + subjectId + ", subject_name=" + subject_name + "]";
+	}
+
 	public Subject() {
 		super();
 	}
 	
-	@Override
-	public String toString() {
-		return "Subject [subject_id=" + subject_id + ", Subject_name=" + Subject_name + "]";
-	}
-    
-    
+	
     
 }

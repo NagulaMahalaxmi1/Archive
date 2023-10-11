@@ -13,51 +13,58 @@ import java.util.List;
 @RequestMapping("/sections")
 public class SectionController {
 
-    private final SectionService sectionService;
-
     @Autowired
-    public SectionController(SectionService sectionService) {
-        this.sectionService = sectionService;
-    }
-
-    @GetMapping("/{section_id}")
-    public ResponseEntity<Section> getSectionById(@PathVariable int section_id) {
-        Section section = sectionService.findSectionById(section_id);
-        return ResponseEntity.ok(section);
-    }
+    private SectionService sectionService;
 
     @GetMapping("/all")
     public ResponseEntity<List<Section>> getAllSections() {
         List<Section> sections = sectionService.getAllSections();
-        return ResponseEntity.ok(sections);
+        return new ResponseEntity<>(sections, HttpStatus.OK);
+    }
+
+    @GetMapping("/id/{section_id}")
+    public ResponseEntity<Section> getSectionById(@PathVariable("section_id") int section_id) {
+        Section section = sectionService.getSectionById(section_id);
+        if (section != null) {
+            return new ResponseEntity<>(section, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping("/create")
     public ResponseEntity<Section> createSection(@RequestBody Section section) {
         Section createdSection = sectionService.createSection(section);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdSection);
+        return new ResponseEntity<>(createdSection, HttpStatus.CREATED);
     }
 
     @PutMapping("/update/{section_id}")
-    public ResponseEntity<Section> updateSection(@PathVariable int section_id, @RequestBody Section section) {
-        Section updatedSection = sectionService.updateSection(section_id, section);
-        return ResponseEntity.ok(updatedSection);
+    public ResponseEntity<Section> updateSection(
+            @PathVariable("section_id") int section_id,
+            @RequestBody Section updatedSection) {
+        Section section = sectionService.updateSection(section_id, updatedSection);
+        if (section != null) {
+            return new ResponseEntity<>(section, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @DeleteMapping("/delete/{section_id}")
-    public ResponseEntity<Void> deleteSection(@PathVariable int section_id) {
-        sectionService.deleteSectionById(section_id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> deleteSection(@PathVariable("section_id") int section_id) {
+        sectionService.deleteSection(section_id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-    
-//    @PostMapping("/addQuestions/{section_id}/{numberOfQuestions}")
-//    public ResponseEntity<Section> addRandomQuestionsToSection(@PathVariable int section_id, @PathVariable int numberOfQuestions) {
-//        Section section = sectionService.findSectionById(section_id);
-//        if (section == null) {
-//            return ResponseEntity.notFound().build();
-//        }
-//
-//        Section updatedSection = sectionService.addRandomQuestionsToSection(section, numberOfQuestions);
-//        return ResponseEntity.ok(updatedSection);
-//    }
+
+    @PostMapping("/generate")
+    public ResponseEntity<Section> generateRandomSection(
+            @RequestParam("subjectId") int subjectId,
+            @RequestParam("numberOfQuestions") int numberOfQuestions) {
+        try {
+            Section section = sectionService.generateRandomSection(subjectId, numberOfQuestions);
+            return new ResponseEntity<>(section, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
 }

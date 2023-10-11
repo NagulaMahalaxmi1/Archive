@@ -31,9 +31,9 @@ public class SubjectController {
         return subjectService.findAll();
     }
 
-    @GetMapping("/id/{subject_id}")
-    public Subject getSubjectById(@PathVariable Integer subject_id) {
-        return subjectService.findById(subject_id);
+    @GetMapping("/id/{subjectId}")
+    public Subject getSubjectById(@PathVariable Integer subjectId) {
+        return subjectService.findById(subjectId);
     }
 
     @PostMapping("/create")
@@ -41,17 +41,17 @@ public class SubjectController {
         return subjectService.save(subject);
     }
 
-    @PutMapping("/update/{subject_id}")
-    public Subject updateSubject(@PathVariable Integer subject_id, @RequestBody Subject subject) {
-        subject.setSubject_id(subject_id);
+    @PutMapping("/update/{subjectId}")
+    public Subject updateSubject(@PathVariable Integer subjectId, @RequestBody Subject subject) {
+    	subject.setSubjectId(subjectId);
         return subjectService.save(subject);
     }
 
-    @DeleteMapping("/delete/{subject_id}")
-    public void delete(@PathVariable Integer subject_id) {
-		Subject subject = subjectService.findById(subject_id);
+    @DeleteMapping("/delete/{subjectId}")
+    public void delete(@PathVariable Integer subjectId) {
+		Subject subject = subjectService.findById(subjectId);
         if (subject != null) {
-        	subjectService.deleteById(subject_id);
+        	subjectService.deleteById(subjectId);
         }
     }
 
